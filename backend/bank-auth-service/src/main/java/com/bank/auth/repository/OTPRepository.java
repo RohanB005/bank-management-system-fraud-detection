@@ -8,7 +8,7 @@ import com.bank.auth.entity.Customer;
 import com.bank.auth.entity.OTP;
 
 public interface OTPRepository extends JpaRepository<OTP, Long>{
-	Optional<OTP> findTopByCustomerOrderByCreatedAtDescOptional(Customer customer);
+	Optional<OTP> findTopByCustomerOrderByCreatedAtDesc(Customer customer);
 	
 
 }

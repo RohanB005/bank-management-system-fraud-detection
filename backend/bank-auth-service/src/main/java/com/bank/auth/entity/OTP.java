@@ -36,6 +36,46 @@ public class OTP {
 	}
 	public OTP() {
 	}
+	public Long getOtpId() {
+		return otpId;
+	}
+	public void setOtpId(Long otpId) {
+		this.otpId = otpId;
+	}
+	public Customer getCustomer() {
+		return customer;
+	}
+	public void setCustomer(Customer customer) {
+		this.customer = customer;
+	}
+	public String getOtp() {
+		return otp;
+	}
+	public void setOtp(String otp) {
+		this.otp = otp;
+	}
+	public LocalDateTime getExpiryTime() {
+		return expiryTime;
+	}
+	public void setExpiryTime(LocalDateTime expiryTime) {
+		this.expiryTime = expiryTime;
+	}
+	public Boolean getUsed() {
+		return used;
+	}
+	public void setUsed(Boolean used) {
+		this.used = used;
+	}
+	public LocalDateTime getCreatedAt() {
+		return createdAt;
+	}
+	public void setCreatedAt(LocalDateTime createdAt) {
+		this.createdAt = createdAt;
+	}
+	public boolean isUsed() {
+		// TODO Auto-generated method stub
+		return used;
+	}
 	
 
 }

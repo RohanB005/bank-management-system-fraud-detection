@@ -141,6 +141,11 @@ public class Customer {
 		this.aadhaar = aadhaar;
 	}
 
+	public boolean isVerified() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
 	
 	
 	
