@@ -7,11 +7,14 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.bank.account.client.AuthServiceClient;
 import com.bank.account.dto.request.CreateAccountRequest;
+import com.bank.account.dto.request.TransferRequest;
 import com.bank.account.dto.request.UpdateAccountRequest;
 import com.bank.account.dto.response.AccountResponse;
+import com.bank.account.dto.response.TransferResponse;
 import com.bank.account.entity.Account;
 import com.bank.account.exception.InvalidOperationException;
 import com.bank.account.exception.ResourceNotFoundException;
@@ -95,6 +98,34 @@ public class AccountServiceImpl implements AccountService{
 		}
 		account.setStatus(Account.AccountStatus.Closed);
 		return AccountResponse.fromEntity(accountRepository.save(account));
+	}
+
+	@Override
+	@Transactional
+	public TransferResponse transfer(TransferRequest request) {
+		Account sender = accountRepository.findById(request.getFromAccountId())
+	            .orElseThrow(() -> new RuntimeException("Sender account not found"));
+
+	    Account receiver = accountRepository.findById(request.getToAccountId())
+	            .orElseThrow(() -> new RuntimeException("Receiver account not found"));
+
+	    if (sender.getBalance().compareTo(request.getAmount()) < 0) {
+	        throw new RuntimeException("Insufficient balance");
+	    }
+
+	    sender.setBalance(sender.getBalance().subtract(request.getAmount()));
+	    receiver.setBalance(receiver.getBalance().add(request.getAmount()));
+
+	    accountRepository.save(sender);
+	    accountRepository.save(receiver);
+
+	    return TransferResponse.builder()
+	            .fromAccountId(sender.getAccountId())
+	            .toAccountId(receiver.getAccountId())
+	            .fromAccountBalance(sender.getBalance())
+	            .toAccountBalance(receiver.getBalance())
+	            .status("SUCCESS")
+	            .build();
 	}
 	
 	

@@ -14,9 +14,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.bank.account.dto.request.CreateAccountRequest;
+import com.bank.account.dto.request.TransferRequest;
 import com.bank.account.dto.request.UpdateAccountRequest;
 import com.bank.account.dto.response.AccountResponse;
 import com.bank.account.dto.response.ApiResponse;
+import com.bank.account.dto.response.TransferResponse;
 import com.bank.account.service.AccountService;
 
 import jakarta.validation.Valid;
@@ -36,6 +38,7 @@ public class AccountController {
 	
 	@GetMapping("/{accountId}")
 	public ResponseEntity<ApiResponse<AccountResponse>>getAccount(@PathVariable Integer accountId){
+		 System.out.println("Received GET account request: " + accountId);
 		return ResponseEntity.ok(ApiResponse.success(
 				accountService.getAccount(accountId), "Account fetched successfully"));
 	}
@@ -60,6 +63,16 @@ public class AccountController {
 	public ResponseEntity<ApiResponse<AccountResponse>> closeAccount(@PathVariable Integer accountId){
 		return ResponseEntity.ok(ApiResponse.success(
 				accountService.closeAccount(accountId), "Account closed successfully"));
+	}
+	
+	@PostMapping("/transfer")
+	public ResponseEntity<ApiResponse<TransferResponse>> transfer(
+	        @RequestBody TransferRequest request) {
+
+	    return ResponseEntity.ok(
+	            ApiResponse.success(
+	                    accountService.transfer(request),
+	                    "Balance updated successfully"));
 	}
 	
 	

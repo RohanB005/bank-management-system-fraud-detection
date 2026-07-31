@@ -3,8 +3,10 @@ package com.bank.account.service;
 import java.util.List;
 
 import com.bank.account.dto.request.CreateAccountRequest;
+import com.bank.account.dto.request.TransferRequest;
 import com.bank.account.dto.request.UpdateAccountRequest;
 import com.bank.account.dto.response.AccountResponse;
+import com.bank.account.dto.response.TransferResponse;
 
 import jakarta.validation.Valid;
 
@@ -19,5 +21,7 @@ public interface AccountService {
 	AccountResponse updateAccount(Integer accountId, UpdateAccountRequest request);
 
 	AccountResponse closeAccount(Integer accountId);
+
+	TransferResponse transfer(TransferRequest request);
 
 }
