@@ -26,15 +26,16 @@ public class JwtUtil {
 				.getPayload();
 	}
 	
-	public Integer extraxctCustomerId(String token) {
-		return extractClaims(token).get("customerId", Integer.class);
-	}
+//	public Integer extraxctCustomerId(String token) {
+//		return extractClaims(token).get("customerId", Integer.class);
+//	}
 	
 	public boolean isToeknValid(String token) {
 		try {
 			extractClaims(token);
 			return true;
 		}catch(Exception e) {
+			e.printStackTrace();
 			return false;
 		}
 	}

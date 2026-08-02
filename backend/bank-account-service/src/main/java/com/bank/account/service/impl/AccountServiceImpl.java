@@ -39,6 +39,15 @@ public class AccountServiceImpl implements AccountService{
 					"Customer not found with id: " + request.getCustomerId());
 		}
 		
+		if (accountRepository.existsByCustomerIdAndAccountType(
+	            request.getCustomerId(),
+	            request.getAccountType())) {
+
+	        throw new InvalidOperationException(
+	                request.getAccountType()
+	                + " account already exists for this customer.");
+	    }
+		
 		Account account =  new Account();
 		account.setCustomerId(request.getCustomerId());
 		account.setAccountNumber(generateAccountNumber());
@@ -94,7 +103,7 @@ public class AccountServiceImpl implements AccountService{
 		Account account = findAccountOrThrow(accountId);
 		if(account.getBalance().compareTo(BigDecimal.ZERO) !=0) {
 			throw new InvalidOperationException(
-					"Cannot close account with a non-zero balance. Current balance: " + account.getBalance());
+					 "Please withdraw or transfer the remaining balance before closing the account. Current balance: ₹" + account.getBalance());
 		}
 		account.setStatus(Account.AccountStatus.Closed);
 		return AccountResponse.fromEntity(accountRepository.save(account));
