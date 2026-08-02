@@ -5,21 +5,34 @@ using FraudDetectionService.Enums;
 using FraudDetectionService.Services.Interfaces;
 using FraudDetectionService.Helpers;
 using Microsoft.EntityFrameworkCore;
+using FraudDetectionService.Services;
+using Microsoft.Extensions.Logging;
 
 namespace FraudDetectionService.Services
 {
     public class FraudService : IFraudService
     {
         private readonly FraudDbContext _context;
-
-        public FraudService(FraudDbContext context)
+        private readonly IAIExplanationService _aiExplanationService;
+        private readonly ILogger<FraudService> _logger;
+        public FraudService(
+            FraudDbContext context,
+            IAIExplanationService aiExplanationService,
+            ILogger<FraudService> logger    )
         {
             _context = context;
+            _aiExplanationService = aiExplanationService;
+            _logger = logger;
         }
 
 
         public async Task<FraudCheckResponse> CheckFraudAsync(FraudCheckRequest request)
         {
+            _logger.LogInformation(
+                "Checking Transaction {TransactionID} for Customer {CustomerId}",
+                request.TransactionId,
+                request.CustomerId);
+
             //int riskScore = 0;
 
 
@@ -95,9 +108,50 @@ namespace FraudDetectionService.Services
             };
 
 
+            // Generate AI explanation only for high-risk transactions
+            if(fraudLog.RiskScore >= 80)
+{
+                try
+                {
+                    _logger.LogInformation(
+                        "Generating AI explanation for Transaction {TransactionId}",
+                        fraudLog.TransactionId);
+
+                    fraudLog.AIExplanation =
+                        await _aiExplanationService.GenerateFraudExplanationAsync(fraudLog);
+
+                    fraudLog.AIProcessedAt = DateTime.UtcNow;
+
+                    _logger.LogInformation(
+                        "AI explanation generated successfully.");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(
+                        ex,
+                        "Gemini API failed for Transaction {TransactionId}",
+                        fraudLog.TransactionId);
+
+                    fraudLog.AIExplanation =
+                        "AI explanation unavailable due to temporary service error.";
+
+                    fraudLog.AIProcessedAt = DateTime.UtcNow;
+                }
+            }
+
+            // Save the fraud log
             _context.FraudLogs.Add(fraudLog);
 
+
+
+            _logger.LogInformation(
+                "Saving FraudLog for Transaction {TransactionId}",
+                 fraudLog.TransactionId);
+
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation(
+                "FraudLog saved successfully.");
 
 
             return new FraudCheckResponse
@@ -108,7 +162,9 @@ namespace FraudDetectionService.Services
 
                 Message = riskScore >= 80
                     ? "Fraud Detected"
-                    : "Transaction Safe"
+                    : "Transaction Safe",
+
+                AIExplanation = fraudLog.AIExplanation
             };
         }
     }

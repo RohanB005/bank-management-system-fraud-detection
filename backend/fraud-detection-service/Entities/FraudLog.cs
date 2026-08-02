@@ -77,5 +77,9 @@ namespace FraudDetectionService.Entities
 
         [Required]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public string? AIExplanation { get; set; }
+
+        public DateTime? AIProcessedAt { get; set; }
     }
 }
