@@ -1,34 +1,59 @@
 package com.bank.transaction.client;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.bank.transaction.dto.request.UpdateBalanceRequest;
 import com.bank.transaction.dto.response.AccountResponse;
-
-import lombok.RequiredArgsConstructor;
+import com.bank.transaction.dto.response.ApiResponse;
 
 @Component
-@RequiredArgsConstructor
 public class AccountServiceClient {
-	
-	@Value("${account.service.url}")
-	private String accountServiceUrl;
-	
-	private final WebClient.Builder webClientBuilder;
-	
-	public AccountServiceClient(WebClient.Builder webClientBuilder) {
-		this.webClientBuilder = webClientBuilder;
-	}
-	
-	public AccountResponse getAccountById(Integer accountId) {
-		
-		return webClientBuilder.build().get().uri(accountServiceUrl + "/api/accounts" + accountId).retrieve().bodyToMono(AccountResponse.class).block();
-	}
-	
-	public AccountResponse updateBalance(Integer accountId, UpdateBalanceRequest request) {
-		return webClientBuilder.build().put().uri(accountServiceUrl + "/api/accounts/" + accountId + "/balance").bodyValue(request).retrieve().bodyToMono(AccountResponse.class).block();
-	}
 
+    private final WebClient webClient;
+
+    public AccountServiceClient(
+            WebClient.Builder webClientBuilder,
+            @Value("${account.service.url}") String accountServiceUrl) {
+
+        this.webClient = webClientBuilder
+                .baseUrl(accountServiceUrl)
+                .build();
+    }
+
+
+    public AccountResponse getAccountById(Integer accountId) {
+
+        ApiResponse<AccountResponse> response =
+                webClient.get()
+                .uri("/api/accounts/{id}", accountId)
+                .retrieve()
+                .bodyToMono(
+                    new ParameterizedTypeReference<ApiResponse<AccountResponse>>() {}
+                )
+                .block();
+
+
+        if(response == null || response.getData() == null) {
+            return null;
+        }
+
+        return response.getData();
+    }
+
+    public void updateBalance(Integer accountId,
+                              UpdateBalanceRequest request) {
+
+        webClient.put()
+                .uri("/api/accounts/{id}", accountId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .bodyValue(request)
+                .retrieve()
+                .bodyToMono(Void.class)
+                .block();
+    }
 }

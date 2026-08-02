@@ -2,33 +2,41 @@ package com.bank.transaction.dto.response;
 
 import java.math.BigDecimal;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class AccountResponse {
-	
-	private Integer accountId;
-	
-	private String accountNumber;
-	
-	private BigDecimal balance;
-	
-	private String accountType;
-	
-	private String status;
 
-	public BigDecimal getBalance() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    private Integer accountId;
+    private Integer customerId;
+    private String accountNumber;
+    private String accountType;
+    private BigDecimal balance;
+    private String branchName;
+    private String ifscCode;
+    private String status;
 
-	public String getStatus() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
+    public Integer getAccountId() {
+        return accountId;
+    }
+
+    public void setAccountId(Integer accountId) {
+        this.accountId = accountId;
+    }
+
+
+    public BigDecimal getBalance() {
+        return balance;
+    }
+
+    public void setBalance(BigDecimal balance) {
+        this.balance = balance;
+    }
+
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 }

@@ -36,6 +36,8 @@ public class TransactionController {
 	public ResponseEntity<TransactionResponse> deposit(
 			@Valid @RequestBody DepositRequest request) {
 		
+		System.out.println("Deposit API Called");
+		
 		TransactionResponse response = transactionService.deposit(request);
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}

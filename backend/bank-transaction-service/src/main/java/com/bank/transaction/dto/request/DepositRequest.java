@@ -5,9 +5,7 @@ import java.math.BigDecimal;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.Data;
 
-@Data
 public class DepositRequest {
 	
 	@NotNull
@@ -23,23 +21,36 @@ public class DepositRequest {
 	private String transactionCity;
 
 	public Integer getAccountId() {
-		// TODO Auto-generated method stub
-		return null;
+		return accountId;
+	}
+
+	public void setAccountId(Integer accountId) {
+		this.accountId = accountId;
 	}
 
 	public BigDecimal getAmount() {
-		// TODO Auto-generated method stub
-		return null;
+		return amount;
 	}
 
-	public String getTransactionCity() {
-		// TODO Auto-generated method stub
-		return null;
+	public void setAmount(BigDecimal amount) {
+		this.amount = amount;
 	}
 
 	public String getDescription() {
-		// TODO Auto-generated method stub
-		return null;
+		return description;
 	}
 
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public String getTransactionCity() {
+		return transactionCity;
+	}
+
+	public void setTransactionCity(String transactionCity) {
+		this.transactionCity = transactionCity;
+	}
+
+	
 }

@@ -42,15 +42,22 @@ public class TransactionServiceImpl implements TransactionService {
             throw new RuntimeException("Account not found");
         }
 
+        if (account.getBalance() == null) {
+            throw new RuntimeException("Account balance is missing");
+        }
+
         BigDecimal updatedBalance =
                 account.getBalance().add(request.getAmount());
+
 
         UpdateBalanceRequest updateRequest =
                 new UpdateBalanceRequest(updatedBalance);
 
+
         accountServiceClient.updateBalance(
                 request.getAccountId(),
                 updateRequest);
+
 
         Transaction transaction = new Transaction();
 
@@ -62,11 +69,12 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setTransactionCity(request.getTransactionCity());
         transaction.setReferenceNumber(generateReferenceNumber());
         transaction.setTransactionTime(LocalDateTime.now());
-        transaction.setRiskScore(0);
         transaction.setStatus(TransactionStatus.Success);
+
 
         Transaction savedTransaction =
                 transactionRepository.save(transaction);
+
 
         TransactionResponse response =
                 new TransactionResponse();
@@ -84,9 +92,10 @@ public class TransactionServiceImpl implements TransactionService {
                 savedTransaction.getTransactionTime());
         response.setMessage("Amount deposited Successfully");
 
+
         return response;
     }
-
+    
 	@Override
 	public TransactionResponse withdraw(WithdrawRequest request) {
 		AccountResponse account =
@@ -124,7 +133,6 @@ public class TransactionServiceImpl implements TransactionService {
 	    transaction.setTransactionCity(request.getTransactionCity());
 	    transaction.setReferenceNumber(generateReferenceNumber());
 	    transaction.setTransactionTime(LocalDateTime.now());
-	    transaction.setRiskScore(0);
 	    transaction.setStatus(TransactionStatus.Success);
 
 	    Transaction savedTransaction =

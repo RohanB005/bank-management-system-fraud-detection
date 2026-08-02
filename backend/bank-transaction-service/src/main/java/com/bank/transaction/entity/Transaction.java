@@ -16,7 +16,7 @@ public class Transaction {
     @Column
     private Integer accountId;
 
-    private Integer relatedAccountId;
+    //private Integer relatedAccountId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -40,7 +40,7 @@ public class Transaction {
     @Column(nullable = false, length = 30, unique = true)
     private String referenceNumber;
 
-    private Integer riskScore = 0;
+    //private Integer riskScore = 0;
 
     @Enumerated(EnumType.STRING)
     private TransactionStatus status = TransactionStatus.Success;
@@ -50,16 +50,15 @@ public class Transaction {
     }
 
     // Parameterized Constructor
-    public Transaction(Integer transactionId, Integer accountId, Integer relatedAccountId,
+    public Transaction(Integer transactionId, Integer accountId,
                        TransactionType transactionType, BigDecimal amount,
                        BigDecimal availableBalance, String description,
                        LocalDateTime transactionTime, String transactionCity,
-                       String referenceNumber, Integer riskScore,
+                       String referenceNumber,
                        TransactionStatus status) {
 
         this.transactionId = transactionId;
         this.accountId = accountId;
-        this.relatedAccountId = relatedAccountId;
         this.transactionType = transactionType;
         this.amount = amount;
         this.availableBalance = availableBalance;
@@ -67,7 +66,6 @@ public class Transaction {
         this.transactionTime = transactionTime;
         this.transactionCity = transactionCity;
         this.referenceNumber = referenceNumber;
-        this.riskScore = riskScore;
         this.status = status;
     }
 
@@ -75,10 +73,6 @@ public class Transaction {
     public void prePersist() {
         if (transactionTime == null) {
             transactionTime = LocalDateTime.now();
-        }
-
-        if (riskScore == null) {
-            riskScore = 0;
         }
 
         if (status == null) {
@@ -100,14 +94,6 @@ public class Transaction {
 
     public void setAccountId(Integer accountId) {
         this.accountId = accountId;
-    }
-
-    public Integer getRelatedAccountId() {
-        return relatedAccountId;
-    }
-
-    public void setRelatedAccountId(Integer relatedAccountId) {
-        this.relatedAccountId = relatedAccountId;
     }
 
     public TransactionType getTransactionType() {
@@ -164,14 +150,6 @@ public class Transaction {
 
     public void setReferenceNumber(String referenceNumber) {
         this.referenceNumber = referenceNumber;
-    }
-
-    public Integer getRiskScore() {
-        return riskScore;
-    }
-
-    public void setRiskScore(Integer riskScore) {
-        this.riskScore = riskScore;
     }
 
     public TransactionStatus getStatus() {
