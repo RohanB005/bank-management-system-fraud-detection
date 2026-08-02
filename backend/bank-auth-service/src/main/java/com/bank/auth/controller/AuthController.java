@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 //import com.bank.auth.dto.VerifyOtpRequest;
 import com.bank.auth.dto.VerifyOtpResponse;
+import com.bank.auth.dto.CustomerCheckResponse;
 import com.bank.auth.dto.ForgotPasswordRequest;
 import com.bank.auth.dto.ForgotPasswordResponse;
 import com.bank.auth.dto.LoginRequest;
@@ -91,6 +93,17 @@ public class AuthController {
 	    LogoutResponse response = authService.logout();
 
 	    return ResponseEntity.ok(response);
+	}
+	
+	@GetMapping("/customers/{id}")
+	public ResponseEntity<CustomerCheckResponse> customerExists(
+	        @PathVariable Integer id) {
+
+	    boolean exists = authService.customerExists(id);
+
+	    return ResponseEntity.ok(
+	        new CustomerCheckResponse(id, exists, "SUCCESS")
+	    );
 	}
 	
 

@@ -8,17 +8,18 @@ import org.springframework.stereotype.Repository;
 import com.bank.auth.entity.Customer;
 
 @Repository
-public interface CustomerRepository extends JpaRepository<Customer, Long> {
+public interface CustomerRepository extends JpaRepository<Customer, Integer> {
 
     boolean existsByEmail(String email);
 
     boolean existsByMobile(String mobile);
 
-    boolean existsByAadhaar(String aadhaar);
+    boolean existsByAadhaarNumber(String aadhaarNumber);
 
-    boolean existsByPan(String pan);
+    boolean existsByPanNumber(String panNumber);
 
     Optional<Customer> findByMobile(String mobile);
+
     Optional<Customer> findByEmail(String email);
 
 }

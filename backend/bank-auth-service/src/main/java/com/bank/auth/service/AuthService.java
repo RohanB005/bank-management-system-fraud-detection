@@ -25,4 +25,6 @@ public interface AuthService {
 	ResetPasswordResponse resetPassword(ResetPasswordRequest request);
 	
 	LogoutResponse logout();
+
+	boolean customerExists(Integer id);
 }
