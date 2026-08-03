@@ -16,6 +16,9 @@ import com.bank.transaction.dto.response.TransactionResponse;
 import com.bank.transaction.entity.Transaction;
 import com.bank.transaction.entity.TransactionStatus;
 import com.bank.transaction.entity.TransactionType;
+import com.bank.transaction.exception.InsufficientBalanceException;
+import com.bank.transaction.exception.InvalidOperationException;
+import com.bank.transaction.exception.ResourceNotFoundException;
 import com.bank.transaction.repository.TransactionRepository;
 import com.bank.transaction.service.TransactionService;
 
@@ -36,142 +39,73 @@ public class TransactionServiceImpl implements TransactionService {
     public TransactionResponse deposit(DepositRequest request) {
 
         AccountResponse account =
-                accountServiceClient.getAccountById(request.getAccountId());
-
-        if (account == null) {
-            throw new RuntimeException("Account not found");
-        }
-
-        if (account.getBalance() == null) {
-            throw new RuntimeException("Account balance is missing");
-        }
+                getAccount(request.getAccountId());
 
         BigDecimal updatedBalance =
                 account.getBalance().add(request.getAmount());
 
-
-        UpdateBalanceRequest updateRequest =
-                new UpdateBalanceRequest(updatedBalance);
-
-
-        accountServiceClient.updateBalance(
+        updateAccountBalance(
                 request.getAccountId(),
-                updateRequest);
+                updatedBalance);
 
+        Transaction transaction =
+                saveTransaction(
+                        request.getAccountId(),
+                        TransactionType.Deposit,
+                        request.getAmount(),
+                        updatedBalance,
+                        request.getDescription(),
+                        request.getTransactionCity());
 
-        Transaction transaction = new Transaction();
-
-        transaction.setAccountId(request.getAccountId());
-        transaction.setTransactionType(TransactionType.Deposit);
-        transaction.setAmount(request.getAmount());
-        transaction.setAvailableBalance(updatedBalance);
-        transaction.setDescription(request.getDescription());
-        transaction.setTransactionCity(request.getTransactionCity());
-        transaction.setReferenceNumber(generateReferenceNumber());
-        transaction.setTransactionTime(LocalDateTime.now());
-        transaction.setStatus(TransactionStatus.Success);
-
-
-        Transaction savedTransaction =
-                transactionRepository.save(transaction);
-
-
-        TransactionResponse response =
-                new TransactionResponse();
-
-        response.setTransactionId(savedTransaction.getTransactionId());
-        response.setReferenceNumber(savedTransaction.getReferenceNumber());
-        response.setTransactionType(
-                savedTransaction.getTransactionType().name());
-        response.setAmount(savedTransaction.getAmount());
-        response.setAvailableBalance(
-                savedTransaction.getAvailableBalance());
-        response.setStatus(
-                savedTransaction.getStatus().name());
-        response.setTransactionTime(
-                savedTransaction.getTransactionTime());
-        response.setMessage("Amount deposited Successfully");
-
-
-        return response;
+        return buildResponse(
+                transaction,
+                "Amount deposited successfully");
     }
     
-	@Override
-	public TransactionResponse withdraw(WithdrawRequest request) {
-		AccountResponse account =
-	            accountServiceClient.getAccountById(request.getAccountId());
+    @Override
+    public TransactionResponse withdraw(WithdrawRequest request) {
 
-	    if (account == null) {
-	        throw new RuntimeException("Account not found");
-	    }
+        AccountResponse account =
+                getAccount(request.getAccountId());
 
-	    if (!"Active".equalsIgnoreCase(account.getStatus())) {
-	        throw new RuntimeException("Account is not active");
-	    }
+        if (account.getBalance().compareTo(request.getAmount()) < 0) {
+            throw new InsufficientBalanceException("Insufficient balance");
+        }
 
-	    if (account.getBalance().compareTo(request.getAmount()) < 0) {
-	        throw new RuntimeException("Insufficient balance");
-	    }
+        BigDecimal updatedBalance =
+                account.getBalance().subtract(request.getAmount());
 
-	    BigDecimal updatedBalance =
-	            account.getBalance().subtract(request.getAmount());
+        updateAccountBalance(
+                request.getAccountId(),
+                updatedBalance);
 
-	    UpdateBalanceRequest updateRequest =
-	            new UpdateBalanceRequest(updatedBalance);
+        Transaction transaction =
+                saveTransaction(
+                        request.getAccountId(),
+                        TransactionType.Withdraw,
+                        request.getAmount(),
+                        updatedBalance,
+                        request.getDescription(),
+                        request.getTransactionCity());
 
-	    accountServiceClient.updateBalance(
-	            request.getAccountId(),
-	            updateRequest);
-
-	    Transaction transaction = new Transaction();
-
-	    transaction.setAccountId(request.getAccountId());
-	    transaction.setTransactionType(TransactionType.Withdraw);
-	    transaction.setAmount(request.getAmount());
-	    transaction.setAvailableBalance(updatedBalance);
-	    transaction.setDescription(request.getDescription());
-	    transaction.setTransactionCity(request.getTransactionCity());
-	    transaction.setReferenceNumber(generateReferenceNumber());
-	    transaction.setTransactionTime(LocalDateTime.now());
-	    transaction.setStatus(TransactionStatus.Success);
-
-	    Transaction savedTransaction =
-	            transactionRepository.save(transaction);
-
-	    TransactionResponse response = new TransactionResponse();
-
-	    response.setTransactionId(savedTransaction.getTransactionId());
-	    response.setReferenceNumber(savedTransaction.getReferenceNumber());
-	    response.setTransactionType(savedTransaction.getTransactionType().name());
-	    response.setAmount(savedTransaction.getAmount());
-	    response.setAvailableBalance(savedTransaction.getAvailableBalance());
-	    response.setStatus(savedTransaction.getStatus().name());
-	    response.setTransactionTime(savedTransaction.getTransactionTime());
-	    response.setMessage("Amount withdrawn successfully");
-
-	    return response;
-	}
+        return buildResponse(
+                transaction,
+                "Amount withdrawn successfully");
+    }
 	
 
-	@Override
-	public TransactionResponse getTransactionById(Integer transactionId) {
-		Transaction transaction = transactionRepository.findById(transactionId)
-	            .orElseThrow(() ->
-	                    new RuntimeException("Transaction not found"));
+    @Override
+    public TransactionResponse getTransactionById(Integer transactionId) {
 
-	    TransactionResponse response = new TransactionResponse();
+        Transaction transaction =
+                transactionRepository.findById(transactionId)
+                .orElseThrow(() ->
+                        new RuntimeException("Transaction not found"));
 
-	    response.setTransactionId(transaction.getTransactionId());
-	    response.setReferenceNumber(transaction.getReferenceNumber());
-	    response.setTransactionType(transaction.getTransactionType().name());
-	    response.setAmount(transaction.getAmount());
-	    response.setAvailableBalance(transaction.getAvailableBalance());
-	    response.setStatus(transaction.getStatus().name());
-	    response.setTransactionTime(transaction.getTransactionTime());
-	    response.setMessage("Transaction fetched successfully");
-
-	    return response;
-	}
+        return buildResponse(
+                transaction,
+                "Transaction fetched successfully");
+    }
 
 	@Override
 	public List<TransactionResponse> getTransactionHistory(Integer accountId) {
@@ -179,23 +113,124 @@ public class TransactionServiceImpl implements TransactionService {
 		            transactionRepository.findByAccountIdOrderByTransactionTimeDesc(accountId);
 
 		    return transactions.stream()
-		            .map(transaction -> {
-
-		                TransactionResponse response = new TransactionResponse();
-
-		                response.setTransactionId(transaction.getTransactionId());
-		                response.setReferenceNumber(transaction.getReferenceNumber());
-		                response.setTransactionType(transaction.getTransactionType().name());
-		                response.setAmount(transaction.getAmount());
-		                response.setAvailableBalance(transaction.getAvailableBalance());
-		                response.setStatus(transaction.getStatus().name());
-		                response.setTransactionTime(transaction.getTransactionTime());
-		                response.setMessage("Success");
-
-		                return response;
-		            })
+		    		.map(transaction ->
+		            buildResponse(
+		                    transaction,
+		                    "Transaction history fetched successfully"))
 		            .toList();
 	}
+	
+	
+	private AccountResponse getAccount(Integer accountId) {
+
+	    AccountResponse account =
+	            accountServiceClient.getAccountById(accountId);
+
+	    if (account == null) {
+	        throw new ResourceNotFoundException("Account not found");
+	    }
+
+	    if (!"Active".equalsIgnoreCase(account.getStatus())) {
+	        throw new InvalidOperationException("Account is not active");
+	    }
+
+	    if (account.getBalance() == null) {
+	        throw new InvalidOperationException("Account balance is missing");
+	    }
+
+	    return account;
+	}
+	
+	
+	private void updateAccountBalance(
+	        Integer accountId,
+	        BigDecimal updatedBalance) {
+
+	    UpdateBalanceRequest request =
+	            new UpdateBalanceRequest(updatedBalance);
+
+	    accountServiceClient.updateBalance(
+	            accountId,
+	            request);
+	}
+	
+	
+	private Transaction saveTransaction(
+
+	        Integer accountId,
+
+	        TransactionType type,
+
+	        BigDecimal amount,
+
+	        BigDecimal availableBalance,
+
+	        String description,
+
+	        String city) {
+
+	    Transaction transaction = new Transaction();
+
+	    transaction.setAccountId(accountId);
+
+	    transaction.setTransactionType(type);
+
+	    transaction.setAmount(amount);
+
+	    transaction.setAvailableBalance(availableBalance);
+
+	    transaction.setDescription(description);
+
+	    transaction.setTransactionCity(city);
+
+	    transaction.setReferenceNumber(
+	            generateReferenceNumber());
+
+	    transaction.setTransactionTime(
+	            LocalDateTime.now());
+
+	    transaction.setStatus(
+	            TransactionStatus.Success);
+
+	    return transactionRepository.save(transaction);
+	}
+	
+	
+	private TransactionResponse buildResponse(
+
+	        Transaction transaction,
+
+	        String message) {
+
+	    TransactionResponse response =
+	            new TransactionResponse();
+
+	    response.setTransactionId(
+	            transaction.getTransactionId());
+
+	    response.setReferenceNumber(
+	            transaction.getReferenceNumber());
+
+	    response.setTransactionType(
+	            transaction.getTransactionType().name());
+
+	    response.setAmount(
+	            transaction.getAmount());
+
+	    response.setAvailableBalance(
+	            transaction.getAvailableBalance());
+
+	    response.setStatus(
+	            transaction.getStatus().name());
+
+	    response.setTransactionTime(
+	            transaction.getTransactionTime());
+
+	    response.setMessage(message);
+
+	    return response;
+	}
+	
 	
 	private String generateReferenceNumber() {
 		return "TXN"
