@@ -13,6 +13,7 @@ import com.bank.account.client.AuthServiceClient;
 import com.bank.account.dto.request.CreateAccountRequest;
 import com.bank.account.dto.request.TransferRequest;
 import com.bank.account.dto.request.UpdateAccountRequest;
+import com.bank.account.dto.request.UpdateBalanceRequest;
 import com.bank.account.dto.response.AccountResponse;
 import com.bank.account.dto.response.TransferResponse;
 import com.bank.account.entity.Account;
@@ -97,6 +98,29 @@ public class AccountServiceImpl implements AccountService{
 		}
 		return AccountResponse.fromEntity(accountRepository.save(account));
 	}
+	
+	
+	@Override
+	public AccountResponse updateBalance(
+	        Integer accountId,
+	        UpdateBalanceRequest request) {
+
+	    Account account = accountRepository.findById(accountId)
+	            .orElseThrow(() ->
+	                    new ResourceNotFoundException(
+	                            "Account not found with id: " + accountId));
+
+	    if (account.getStatus() != Account.AccountStatus.Active) {
+	        throw new InvalidOperationException("Account is not active");
+	    }
+
+	    account.setBalance(request.getBalance());
+
+	    Account updated = accountRepository.save(account);
+
+	    return AccountResponse.fromEntity(updated);
+	}
+	
 
 	@Override
 	public AccountResponse closeAccount(Integer accountId) {

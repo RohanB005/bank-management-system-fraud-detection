@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.bank.account.dto.request.CreateAccountRequest;
 import com.bank.account.dto.request.TransferRequest;
 import com.bank.account.dto.request.UpdateAccountRequest;
+import com.bank.account.dto.request.UpdateBalanceRequest;
 import com.bank.account.dto.response.AccountResponse;
 import com.bank.account.dto.response.ApiResponse;
 import com.bank.account.dto.response.TransferResponse;
@@ -56,6 +57,17 @@ public class AccountController {
 			@PathVariable Integer accountId, @RequestBody UpdateAccountRequest request){
 		return ResponseEntity.ok(ApiResponse.success(
 				accountService.updateAccount(accountId, request), "Account Updated Successfully"));
+	}
+	
+	@PutMapping("/{accountId}/balance")
+	public ResponseEntity<ApiResponse<AccountResponse>> updateBalance(
+	        @PathVariable Integer accountId,
+	        @RequestBody UpdateBalanceRequest request) {
+
+	    return ResponseEntity.ok(
+	            ApiResponse.success(
+	                    accountService.updateBalance(accountId, request),
+	                    "Balance updated successfully"));
 	}
 	
 	
