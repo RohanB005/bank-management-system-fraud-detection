@@ -5,7 +5,8 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
-
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import com.bank.transaction.dto.request.UpdateBalanceRequest;
 import com.bank.transaction.dto.response.AccountResponse;
 import com.bank.transaction.dto.response.ApiResponse;
@@ -28,8 +29,9 @@ public class AccountServiceClient {
     public AccountResponse getAccountById(Integer accountId) {
 
         ApiResponse<AccountResponse> response =
-                webClient.get()
+        		webClient.get()
                 .uri("/api/accounts/{id}", accountId)
+                .header("Authorization", getAuthorizationHeader())
                 .retrieve()
                 .bodyToMono(
                     new ParameterizedTypeReference<ApiResponse<AccountResponse>>() {}
@@ -47,13 +49,26 @@ public class AccountServiceClient {
     public void updateBalance(Integer accountId,
                               UpdateBalanceRequest request) {
 
-        webClient.put()
-                .uri("/api/accounts/{id}", accountId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .bodyValue(request)
-                .retrieve()
+    	webClient.put()
+        .uri("/api/accounts/{id}/balance", accountId)
+        .header("Authorization", getAuthorizationHeader())
+        .contentType(MediaType.APPLICATION_JSON)
+        .accept(MediaType.APPLICATION_JSON)
+        .bodyValue(request)
+        .retrieve()
                 .bodyToMono(Void.class)
                 .block();
+    }
+    
+    private String getAuthorizationHeader() {
+
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null) {
+            return null;
+        }
+
+        return "Bearer " + authentication.getPrincipal();
     }
 }
