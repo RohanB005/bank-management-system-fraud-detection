@@ -10,6 +10,10 @@ public class TransactionResponse {
     private String referenceNumber;
 
     private String transactionType;
+    
+    private String description;
+
+    private String transactionCity;
 
     private BigDecimal amount;
 
@@ -25,17 +29,25 @@ public class TransactionResponse {
     public TransactionResponse() {
     }
 
-    // Parameterized Constructor
-    public TransactionResponse(Integer transactionId, String referenceNumber,
-            String transactionType, BigDecimal amount,
-            BigDecimal availableBalance, String status,
-            LocalDateTime transactionTime, String message) {
+    public TransactionResponse(
+            Integer transactionId,
+            String referenceNumber,
+            String transactionType,
+            BigDecimal amount,
+            BigDecimal availableBalance,
+            String description,
+            String transactionCity,
+            String status,
+            LocalDateTime transactionTime,
+            String message) {
 
         this.transactionId = transactionId;
         this.referenceNumber = referenceNumber;
         this.transactionType = transactionType;
         this.amount = amount;
         this.availableBalance = availableBalance;
+        this.description = description;
+        this.transactionCity = transactionCity;
         this.status = status;
         this.transactionTime = transactionTime;
         this.message = message;
@@ -103,5 +115,21 @@ public class TransactionResponse {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+    
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getTransactionCity() {
+        return transactionCity;
+    }
+
+    public void setTransactionCity(String transactionCity) {
+        this.transactionCity = transactionCity;
     }
 }

@@ -226,8 +226,14 @@ public class TransactionServiceImpl implements TransactionService {
 	    response.setTransactionTime(
 	            transaction.getTransactionTime());
 
-	    response.setMessage(message);
+	    response.setDescription(
+	            transaction.getDescription());
 
+	    response.setTransactionCity(
+	            transaction.getTransactionCity());
+	    
+	    response.setMessage(message);
+	    
 	    return response;
 	}
 	
