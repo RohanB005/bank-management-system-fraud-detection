@@ -17,7 +17,7 @@ public class RegisterRequest {
     @NotNull(message = "Date of Birth is required")
     private LocalDate dateOfBirth;
 
-    @NotBlank(message = "Gender is required")
+    @NotNull(message = "Gender is required")
     private Gender gender;
 
     @Email(message = "Invalid Email")

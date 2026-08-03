@@ -1,12 +1,12 @@
 import axios from "axios";
 
-const transactionAxios=axios.create({
+const accountAxios = axios.create({
 
-    baseURL:"http://localhost:8081/api/transactions"
+    baseURL:"http://localhost:8082/api/accounts"
 
 });
 
-transactionAxios.interceptors.request.use(config=>{
+accountAxios.interceptors.request.use(config=>{
 
     const token=localStorage.getItem("token");
 
@@ -20,4 +20,4 @@ transactionAxios.interceptors.request.use(config=>{
 
 });
 
-export default transactionAxios;
+export default accountAxios;
