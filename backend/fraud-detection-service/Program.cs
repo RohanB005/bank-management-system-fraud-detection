@@ -1,3 +1,6 @@
+using FraudDetectionService.AI.Clients;
+using FraudDetectionService.AI.Interfaces;
+using FraudDetectionService.Configuration;
 using FraudDetectionService.Data;
 using FraudDetectionService.Services;
 using FraudDetectionService.Services.Interfaces;
@@ -8,6 +11,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 var connectionString = builder.Configuration.GetConnectionString("FraudDb");
+
+builder.Services.Configure<GeminiSettings>(
+    builder.Configuration.GetSection("Gemini"));
+
+builder.Services.AddHttpClient();
+
+builder.Services.AddScoped<IGeminiClient, GeminiClient>();
+
+builder.Services.AddScoped<IAIExplanationService, AIExplanationService>();
+
+builder.Services.AddScoped<IChatAssistantService, ChatAssistantService>();
 
 builder.Services.AddDbContext<FraudDbContext>(options =>
     options.UseMySql(
