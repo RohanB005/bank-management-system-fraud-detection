@@ -1,5 +1,5 @@
 package com.bank.transactions.service.impl;
-
+import com.bank.transactions.dto.FraudCheckRequestDto;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.bank.transactions.client.AccountClient;
 import com.bank.transactions.dto.AccountDto;
+import com.bank.transactions.dto.FraudCheckRequestDto;
 import com.bank.transactions.dto.FraudResponseDto;
 import com.bank.transactions.dto.TransactionResponseDto;
 import com.bank.transactions.dto.TransferRequestDto;
@@ -67,13 +68,28 @@ public class TransactionServiceImpl implements TransactionService {
 
         // Step 7 & 8: delegate the fraud rule entirely to FraudCheckService.
         // This class must never contain fraud logic itself.
-        FraudResponseDto fraudResult = fraudCheckService.checkTransaction(request.getAmount());
+       
+        FraudCheckRequestDto fraudRequest = new FraudCheckRequestDto();
+        
+        fraudRequest.setCurrentTransactionCity(request.getTransactionCity());
+        fraudRequest.setCustomerId(sender.getCustomerId());
+        fraudRequest.setAccountId(sender.getAccountId());
+        fraudRequest.setTransactionAmount(request.getAmount());
+        fraudRequest.setTransactionType("TRANSFER");
+        fraudRequest.setClientIpAddress("127.0.0.1");
+        fraudRequest.setCurrentTransactionCity("Pune");
 
-        if (fraudResult.isFlagged()) {
+        FraudResponseDto fraudResult = fraudCheckService.checkTransaction(fraudRequest);
+
+        if (fraudResult.isFraud()) {
             return buildFlaggedResponse(fraudResult);
         }
 
-        return executeAllowedTransfer(request, fraudResult);
+        return executeAllowedTransfer(
+                request,
+                fraudResult,
+                fraudRequest.getCurrentTransactionCity()
+        );
     }
 
     private void validateNotSameAccount(TransferRequestDto request) {
@@ -102,18 +118,21 @@ public class TransactionServiceImpl implements TransactionService {
      * no Transaction record is persisted. The caller is told immediately.
      */
     private TransactionResponseDto buildFlaggedResponse(FraudResponseDto fraudResult) {
-        return new TransactionResponseDto(
-                null,
-                TransactionStatus.FLAGGED,
-                "Transaction flagged as suspicious and was not processed"
-        );
+    	return new TransactionResponseDto(
+    	        null,
+    	        TransactionStatus.FLAGGED,
+    	        fraudResult.getMessage()
+    	);
     }
 
     /**
      * Steps 10 & 11: the Account Service performs the actual balance movement;
      * on success this service records its own Transaction entry.
      */
-    private TransactionResponseDto executeAllowedTransfer(TransferRequestDto request, FraudResponseDto fraudResult) {
+    private TransactionResponseDto executeAllowedTransfer(
+            TransferRequestDto request,
+            FraudResponseDto fraudResult,
+            String transactionCity) {
         AccountClient.TransferResult transferResult = accountClient.transfer(request);
 
         if (!"SUCCESS".equalsIgnoreCase(transferResult.getStatus())) {
@@ -129,7 +148,7 @@ public class TransactionServiceImpl implements TransactionService {
                 transferResult.getFromAccountBalance(),
                 "Transfer to account " + request.getToAccountId(),
                 LocalDateTime.now(),
-                "Pune" ,
+                transactionCity,
                 //null, // transactionCity — not part of the current request payload
                 referenceNumber,
                 TransactionStatus.SUCCESS

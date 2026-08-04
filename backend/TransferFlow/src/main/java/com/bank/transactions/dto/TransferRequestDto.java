@@ -21,17 +21,30 @@ public class TransferRequestDto {
     @NotNull(message = "amount is required")
     @DecimalMin(value = "0.01", message = "amount must be greater than zero")
     private BigDecimal amount;
+    
+    private String transactionCity;
 
     public TransferRequestDto() {
     }
 
-    public TransferRequestDto(Integer fromAccountId, Integer toAccountId, BigDecimal amount) {
+    public TransferRequestDto(Integer fromAccountId, Integer toAccountId, BigDecimal amount,String transactionCity) {
         this.fromAccountId = fromAccountId;
         this.toAccountId = toAccountId;
         this.amount = amount;
+        this.transactionCity=transactionCity;
     }
+    
+    
 
-    public Integer getFromAccountId() {
+    public String getTransactionCity() {
+		return transactionCity;
+	}
+
+	public void setTransactionCity(String transactionCity) {
+		this.transactionCity = transactionCity;
+	}
+
+	public Integer getFromAccountId() {
         return fromAccountId;
     }
 

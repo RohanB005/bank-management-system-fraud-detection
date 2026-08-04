@@ -1,34 +1,35 @@
 package com.bank.transactions.fraud;
 
-import java.math.BigDecimal;
-
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
+import com.bank.transactions.dto.FraudCheckRequestDto;
 import com.bank.transactions.dto.FraudResponseDto;
 
-/**
- * Temporary stand-in for the real .NET Fraud Detection API.
- *
- * Rule: amount > 50,000  -> FLAGGED, riskScore = 90
- *       otherwise        -> ALLOW,   riskScore = 10
- *
- * This lets the Transfer Flow be built and tested end-to-end without waiting
- * on the real fraud engine. Because TransactionServiceImpl depends only on
- * the FraudCheckService interface, replacing this class later requires no
- * change anywhere else in the Transaction Service.
- */
 @Service
 public class StubFraudCheckService implements FraudCheckService {
 
-    private static final BigDecimal FLAG_THRESHOLD = new BigDecimal("50000");
-    private static final int FLAGGED_RISK_SCORE = 90;
-    private static final int ALLOWED_RISK_SCORE = 10;
+    private static final String FRAUD_API_URL =
+            "https://26.93.90.128:59916/api/Fraud/check";
+
+    private final RestTemplate restTemplate = new RestTemplate();
 
     @Override
-    public FraudResponseDto checkTransaction(BigDecimal amount) {
-        if (amount.compareTo(FLAG_THRESHOLD) > 0) {
-            return new FraudResponseDto("FLAGGED", FLAGGED_RISK_SCORE);
-        }
-        return new FraudResponseDto("ALLOW", ALLOWED_RISK_SCORE);
+    public FraudResponseDto checkTransaction(FraudCheckRequestDto request) {
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<FraudCheckRequestDto> entity =
+                new HttpEntity<>(request, headers);
+
+        return restTemplate.postForObject(
+        		FRAUD_API_URL,
+                entity,
+                FraudResponseDto.class
+        );
     }
 }

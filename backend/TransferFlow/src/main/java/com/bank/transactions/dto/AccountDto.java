@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 public class AccountDto {
 
     private Integer accountId;
-    private Long customerId;
+    private Integer customerId;
     private String accountNumber;
     private String accountType;
     private BigDecimal balance;
@@ -20,7 +20,7 @@ public class AccountDto {
     public AccountDto() {
     }
 
-    public AccountDto(Integer accountId, Long customerId, String accountNumber, String accountType,
+    public AccountDto(Integer accountId, Integer customerId, String accountNumber, String accountType,
                        BigDecimal balance, String status) {
         this.accountId = accountId;
         this.customerId = customerId;
@@ -38,11 +38,11 @@ public class AccountDto {
         this.accountId = accountId;
     }
 
-    public Long getCustomerId() {
+    public Integer getCustomerId() {
         return customerId;
     }
 
-    public void setCustomerId(Long customerId) {
+    public void setCustomerId(Integer customerId) {
         this.customerId = customerId;
     }
 
