@@ -1,11 +1,12 @@
 import axios from 'axios';
 
-const AUTH_URL = 'http://localhost:9090/api/auth';
-const ACCOUNT_URL = 'http://localhost:8082/api/accounts';
-const TRANSACTION_URL = 'http://localhost:8086/api/transactions';
-const TRANSFER_URL = 'http://localhost:8083/api/transactions';
-const FRAUD_URL = 'http://localhost:5000/api/Fraud';
-const CHAT_URL = 'http://localhost:5000/api/Chat';
+const AUTH_URL = import.meta.env.VITE_AUTH_URL || '/api/auth';
+const ACCOUNT_URL = import.meta.env.VITE_ACCOUNT_URL || '/api/accounts';
+const TRANSACTION_URL = import.meta.env.VITE_TRANSACTION_URL || '/api/transactions';
+const TRANSFER_URL = import.meta.env.VITE_TRANSFER_URL || '/api/transactions';
+const FRAUD_URL = import.meta.env.VITE_FRAUD_URL || '/api/Fraud';
+const CHAT_URL = import.meta.env.VITE_CHAT_URL || '/api/Chat';
+
 
 // Global Axios Interceptor for Authorization Header
 axios.interceptors.request.use((config) => {
