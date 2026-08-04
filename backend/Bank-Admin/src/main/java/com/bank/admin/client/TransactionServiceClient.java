@@ -9,6 +9,7 @@ import com.bank.admin.config.FeignConfig;
 
 @FeignClient(
         name = "TRANSACTION-SERVICE",
+        		url = "http://localhost:8086",
         configuration = FeignConfig.class
 )
 public interface TransactionServiceClient {

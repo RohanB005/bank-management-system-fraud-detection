@@ -36,6 +36,7 @@ public class SecurityConfig {
                             "/api/auth/forgot-password",
                             "/api/auth/reset-password",
                             "/api/auth/customers/**",
+                            "/api/auth/internal/**",
                             "/swagger-ui/**",
                             "/v3/api-docs/**"
                     ).permitAll()

@@ -2,17 +2,13 @@ package com.bank.transactions.dto;
 
 import com.bank.transactions.enums.TransactionStatus;
 
-/**
- * Response payload returned by POST /api/transactions/transfer.
- * Shape matches the project specification exactly:
- * { "transactionId": ..., "status": ..., "message": ..., "riskScore": ... }
- */
 public class TransactionResponseDto {
 
     private Integer transactionId;
     private TransactionStatus status;
     private String message;
-//    private Integer riskScore;
+    private Integer riskScore;
+    private String aiExplanation;
 
     public TransactionResponseDto() {
     }
@@ -21,7 +17,6 @@ public class TransactionResponseDto {
         this.transactionId = transactionId;
         this.status = status;
         this.message = message;
-//        this.riskScore = riskScore;
     }
 
     public Integer getTransactionId() {
@@ -48,11 +43,19 @@ public class TransactionResponseDto {
         this.message = message;
     }
 
-//    public Integer getRiskScore() {
-//        return riskScore;
-//    }
-//
-//    public void setRiskScore(Integer riskScore) {
-//        this.riskScore = riskScore;
-//    }
+    public Integer getRiskScore() {
+        return riskScore;
+    }
+
+    public void setRiskScore(Integer riskScore) {
+        this.riskScore = riskScore;
+    }
+
+    public String getAiExplanation() {
+        return aiExplanation;
+    }
+
+    public void setAiExplanation(String aiExplanation) {
+        this.aiExplanation = aiExplanation;
+    }
 }

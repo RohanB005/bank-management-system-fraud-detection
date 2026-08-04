@@ -7,6 +7,7 @@ import com.bank.admin.config.FeignConfig;
 
 @FeignClient(
         name = "ACCOUNT-SERVICE",
+        url = "http://localhost:8082",
         configuration = FeignConfig.class
 )
 public interface AccountServiceClient {

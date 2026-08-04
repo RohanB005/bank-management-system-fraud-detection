@@ -15,4 +15,5 @@ public interface AccountRepository extends JpaRepository<Account, Integer>{
 	
 	boolean existsByCustomerIdAndAccountType(Integer customerId,Account.AccountType accountType);
 
+	long countByStatus(Account.AccountStatus status);
 }

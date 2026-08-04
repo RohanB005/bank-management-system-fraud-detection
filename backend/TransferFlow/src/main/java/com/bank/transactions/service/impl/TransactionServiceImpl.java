@@ -1,5 +1,5 @@
 package com.bank.transactions.service.impl;
-import com.bank.transactions.dto.FraudCheckRequestDto;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -9,7 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.bank.transactions.client.AccountClient;
 import com.bank.transactions.dto.AccountDto;
 import com.bank.transactions.dto.FraudCheckRequestDto;
+import com.bank.transactions.dto.FraudDecisionRecordDto;
 import com.bank.transactions.dto.FraudResponseDto;
+import com.bank.transactions.dto.TransactionConfirmRequestDto;
 import com.bank.transactions.dto.TransactionResponseDto;
 import com.bank.transactions.dto.TransferRequestDto;
 import com.bank.transactions.entity.Transaction;
@@ -22,21 +24,6 @@ import com.bank.transactions.repository.TransactionRepository;
 import com.bank.transactions.service.TransactionService;
 import com.bank.transactions.util.ReferenceGenerator;
 
-/**
- * Core implementation of the Transfer Flow (B2).
- *
- * Orchestration order:
- *   1. Fetch sender account via AccountClient.
- *   2. Fetch receiver account via AccountClient.
- *   3. Validate: sender != receiver, both ACTIVE, sender has sufficient balance.
- *   4. Call FraudCheckService.checkTransaction(amount).
- *   5. If FLAGGED  -> return immediately; no balances updated, no transaction saved.
- *   6. If ALLOW    -> call AccountClient.transfer(...) so the Account Service performs
- *                     the actual balance movement (this service never touches
- *                     the Account table itself).
- *   7. On success  -> persist a Transaction record with a generated reference number
- *                     and return a SUCCESS response.
- */
 @Service
 public class TransactionServiceImpl implements TransactionService {
 
@@ -56,44 +43,115 @@ public class TransactionServiceImpl implements TransactionService {
     @Transactional
     public TransactionResponseDto transfer(TransferRequestDto request) {
 
-        validateNotSameAccount(request);
+        validateNotSameAccount(request.getFromAccountId(), request.getToAccountId());
 
-        // Step 4 & 5: fetch sender and receiver via the Account Service
         AccountDto sender = accountClient.getAccountById(request.getFromAccountId());
         AccountDto receiver = accountClient.getAccountById(request.getToAccountId());
 
-        // Step 6: validate business rules before ever calling the fraud engine
         validateAccountsActive(sender, receiver);
         validateSufficientBalance(sender, request.getAmount());
 
-        // Step 7 & 8: delegate the fraud rule entirely to FraudCheckService.
-        // This class must never contain fraud logic itself.
-       
+        String city = (request.getTransactionCity() != null && !request.getTransactionCity().isBlank()) ? request.getTransactionCity() : "Pune";
+        String ip = (request.getClientIpAddress() != null && !request.getClientIpAddress().isBlank()) ? request.getClientIpAddress() : "127.0.0.1";
+
+        // Business Rule: Amounts < ₹50,000 bypass Fraud Detection completely
+        if (request.getAmount().compareTo(new BigDecimal("50000")) < 0) {
+            return executeAllowedTransfer(request, city);
+        }
+
+        // Business Rule: Amounts >= ₹50,000 invoke Fraud Detection Service & require Customer Confirmation
         FraudCheckRequestDto fraudRequest = new FraudCheckRequestDto();
-        
-        fraudRequest.setCurrentTransactionCity(request.getTransactionCity());
         fraudRequest.setCustomerId(sender.getCustomerId());
         fraudRequest.setAccountId(sender.getAccountId());
         fraudRequest.setTransactionAmount(request.getAmount());
         fraudRequest.setTransactionType("TRANSFER");
-        fraudRequest.setClientIpAddress("127.0.0.1");
-        fraudRequest.setCurrentTransactionCity("Pune");
+        fraudRequest.setClientIpAddress(ip);
+        fraudRequest.setCurrentTransactionCity(city);
 
         FraudResponseDto fraudResult = fraudCheckService.checkTransaction(fraudRequest);
 
-        if (fraudResult.isFraud()) {
-            return buildFlaggedResponse(fraudResult);
-        }
-
-        return executeAllowedTransfer(
-                request,
-                fraudResult,
-                fraudRequest.getCurrentTransactionCity()
+        // DO NOT execute balance movement or save in transactions table during initial check for amounts >= ₹50,000.
+        // Always return FLAGGED status so customer modal popup is presented.
+        TransactionResponseDto flagged = new TransactionResponseDto(
+                null,
+                TransactionStatus.FLAGGED,
+                fraudResult.getMessage() != null ? fraudResult.getMessage() : "Suspicious Transaction Detected"
         );
+        flagged.setRiskScore(fraudResult.getRiskScore() > 0 ? fraudResult.getRiskScore() : 85);
+        flagged.setAiExplanation(fraudResult.getAiExplanation());
+        return flagged;
     }
 
-    private void validateNotSameAccount(TransferRequestDto request) {
-        if (request.getFromAccountId().equals(request.getToAccountId())) {
+    @Override
+    @Transactional
+    public TransactionResponseDto confirmTransfer(TransactionConfirmRequestDto confirmRequest) {
+        validateNotSameAccount(confirmRequest.getFromAccountId(), confirmRequest.getToAccountId());
+
+        AccountDto sender = accountClient.getAccountById(confirmRequest.getFromAccountId());
+        AccountDto receiver = accountClient.getAccountById(confirmRequest.getToAccountId());
+
+        String city = (confirmRequest.getTransactionCity() != null && !confirmRequest.getTransactionCity().isBlank()) ? confirmRequest.getTransactionCity() : "Pune";
+        String ip = (confirmRequest.getClientIpAddress() != null && !confirmRequest.getClientIpAddress().isBlank()) ? confirmRequest.getClientIpAddress() : "127.0.0.1";
+
+        boolean isAllowed = "Allowed".equalsIgnoreCase(confirmRequest.getCustomerDecision());
+
+        Long customerIdLong = sender.getCustomerId() != null ? sender.getCustomerId().longValue() : 0L;
+        Long accountIdLong = sender.getAccountId() != null ? sender.getAccountId().longValue() : 0L;
+
+        if (isAllowed) {
+            validateAccountsActive(sender, receiver);
+            validateSufficientBalance(sender, confirmRequest.getAmount());
+
+            TransferRequestDto transferReq = new TransferRequestDto(
+                    confirmRequest.getFromAccountId(),
+                    confirmRequest.getToAccountId(),
+                    confirmRequest.getAmount(),
+                    city
+            );
+
+            // Execute balance transfer and save into Transaction table ONLY when customer clicks "Allow Transfer"
+            TransactionResponseDto result = executeAllowedTransfer(transferReq, city);
+
+            // Record Fraud Event with Customer Decision = Allowed
+            FraudDecisionRecordDto decisionRecord = new FraudDecisionRecordDto(
+                    customerIdLong,
+                    accountIdLong,
+                    confirmRequest.getAmount(),
+                    ip,
+                    city,
+                    confirmRequest.getRiskScore() != null ? confirmRequest.getRiskScore() : 85,
+                    confirmRequest.getAiExplanation(),
+                    "Allowed",
+                    "Approved by customer security verification"
+            );
+            fraudCheckService.recordDecision(decisionRecord);
+
+            return result;
+        } else {
+            // Customer clicked "Block Transfer": Cancel immediately, NO balance updates, NO row in Transaction table
+            FraudDecisionRecordDto decisionRecord = new FraudDecisionRecordDto(
+                    customerIdLong,
+                    accountIdLong,
+                    confirmRequest.getAmount(),
+                    ip,
+                    city,
+                    confirmRequest.getRiskScore() != null ? confirmRequest.getRiskScore() : 85,
+                    confirmRequest.getAiExplanation(),
+                    "Blocked",
+                    "Blocked by customer security verification"
+            );
+            fraudCheckService.recordDecision(decisionRecord);
+
+            return new TransactionResponseDto(
+                    null,
+                    TransactionStatus.FLAGGED,
+                    "Transfer Cancelled: Transaction blocked by customer request."
+            );
+        }
+    }
+
+    private void validateNotSameAccount(Integer fromId, Integer toId) {
+        if (fromId.equals(toId)) {
             throw new TransactionException("Sender and receiver account cannot be the same");
         }
     }
@@ -113,25 +171,8 @@ public class TransactionServiceImpl implements TransactionService {
         }
     }
 
-    /**
-     * Step 9: a FLAGGED result stops the flow entirely — no balance update,
-     * no Transaction record is persisted. The caller is told immediately.
-     */
-    private TransactionResponseDto buildFlaggedResponse(FraudResponseDto fraudResult) {
-    	return new TransactionResponseDto(
-    	        null,
-    	        TransactionStatus.FLAGGED,
-    	        fraudResult.getMessage()
-    	);
-    }
-
-    /**
-     * Steps 10 & 11: the Account Service performs the actual balance movement;
-     * on success this service records its own Transaction entry.
-     */
     private TransactionResponseDto executeAllowedTransfer(
             TransferRequestDto request,
-            FraudResponseDto fraudResult,
             String transactionCity) {
         AccountClient.TransferResult transferResult = accountClient.transfer(request);
 
@@ -149,7 +190,6 @@ public class TransactionServiceImpl implements TransactionService {
                 "Transfer to account " + request.getToAccountId(),
                 LocalDateTime.now(),
                 transactionCity,
-                //null, // transactionCity — not part of the current request payload
                 referenceNumber,
                 TransactionStatus.SUCCESS
         );

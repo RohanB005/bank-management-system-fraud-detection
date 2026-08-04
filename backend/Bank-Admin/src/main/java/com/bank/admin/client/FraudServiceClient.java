@@ -7,6 +7,7 @@ import com.bank.admin.config.FeignConfig;
 
 @FeignClient(
         name = "FRAUD-SERVICE",
+        url = "${fraud.service.url:http://localhost:5000}",
         configuration = FeignConfig.class
 )
 public interface FraudServiceClient {

@@ -5,8 +5,15 @@ public class FraudResponseDto {
     private boolean isFraud;
     private int riskScore;
     private String message;
+    private String aiExplanation;
 
     public FraudResponseDto() {
+    }
+
+    public FraudResponseDto(boolean isFraud, int riskScore, String message) {
+        this.isFraud = isFraud;
+        this.riskScore = riskScore;
+        this.message = message;
     }
 
     public boolean isFraud() {
@@ -31,5 +38,13 @@ public class FraudResponseDto {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public String getAiExplanation() {
+        return aiExplanation;
+    }
+
+    public void setAiExplanation(String aiExplanation) {
+        this.aiExplanation = aiExplanation;
     }
 }

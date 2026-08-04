@@ -34,16 +34,7 @@ public class SecurityConfig {
                             SessionCreationPolicy.STATELESS))
 
             .authorizeHttpRequests(auth -> auth
-
-                    /*
-                     * Public endpoints (add here if required later)
-                     *
-                     * Example:
-                     *
-                     * .requestMatchers("/api/transactions/health").permitAll()
-                     *
-                     */
-
+                    .requestMatchers("/api/transactions/internal/**").permitAll()
                     .anyRequest().authenticated()
             )
 

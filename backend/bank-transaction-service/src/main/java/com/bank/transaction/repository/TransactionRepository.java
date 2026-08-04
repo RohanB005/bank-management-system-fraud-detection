@@ -17,4 +17,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Intege
 
 	List<Transaction> findByAccountIdOrderByTransactionTimeDesc(Integer accountId);
 
+	long countByStatus(com.bank.transaction.entity.TransactionStatus status);
+
+	@org.springframework.data.jpa.repository.Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t WHERE t.status = com.bank.transaction.entity.TransactionStatus.Success")
+	java.math.BigDecimal sumTotalAmount();
 }

@@ -79,4 +79,32 @@ public class TransactionController {
                         response,
                         "Transaction history fetched successfully"));
     }
+
+    @GetMapping("/all")
+    public ResponseEntity<ApiResponse<List<TransactionResponse>>> getAllTransactions() {
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        transactionService.getAllTransactions(),
+                        "All transactions fetched successfully"));
+    }
+
+    @GetMapping("/internal/dashboard/total")
+    public ResponseEntity<Long> getTotalTransactions() {
+        return ResponseEntity.ok(transactionService.getTotalTransactions());
+    }
+
+    @GetMapping("/internal/dashboard/successful")
+    public ResponseEntity<Long> getSuccessfulTransactions() {
+        return ResponseEntity.ok(transactionService.getSuccessfulTransactions());
+    }
+
+    @GetMapping("/internal/dashboard/failed")
+    public ResponseEntity<Long> getFailedTransactions() {
+        return ResponseEntity.ok(transactionService.getFailedTransactions());
+    }
+
+    @GetMapping("/internal/dashboard/amount")
+    public ResponseEntity<java.math.BigDecimal> getTotalTransactionAmount() {
+        return ResponseEntity.ok(transactionService.getTotalTransactionAmount());
+    }
 }

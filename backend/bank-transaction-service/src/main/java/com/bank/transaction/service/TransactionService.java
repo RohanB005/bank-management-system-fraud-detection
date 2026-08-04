@@ -17,5 +17,14 @@ public interface TransactionService {
 	TransactionResponse getTransactionById(Integer transactionId);
 	
 	List<TransactionResponse> getTransactionHistory(Integer accountId);
-	
+
+	List<TransactionResponse> getAllTransactions();
+
+	Long getTotalTransactions();
+
+	Long getSuccessfulTransactions();
+
+	Long getFailedTransactions();
+
+	java.math.BigDecimal getTotalTransactionAmount();
 }

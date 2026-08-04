@@ -27,4 +27,9 @@ public interface AccountService {
 
 	TransferResponse transfer(TransferRequest request);
 
+	List<AccountResponse> getAllAccounts();
+
+	Long getTotalAccounts();
+
+	Long getActiveAccounts();
 }

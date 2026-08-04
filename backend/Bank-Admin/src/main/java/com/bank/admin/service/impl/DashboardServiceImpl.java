@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.bank.admin.client.AccountServiceClient;
 import com.bank.admin.client.AuthServiceClient;
 import com.bank.admin.client.FraudServiceClient;
-import com.bank.admin.client.IvrServiceClient;
+//import com.bank.admin.client.IvrServiceClient;
 import com.bank.admin.client.TransactionServiceClient;
 import com.bank.admin.dto.dashboard.DashboardResponse;
 import com.bank.admin.repository.AdminRepository;
@@ -27,7 +27,7 @@ public class DashboardServiceImpl implements DashboardService {
     private final AccountServiceClient accountServiceClient;
     private final TransactionServiceClient transactionServiceClient;
     private final FraudServiceClient fraudServiceClient;
-    private final IvrServiceClient ivrServiceClient;
+    //private final IvrServiceClient ivrServiceClient;
     private final AdminRepository adminRepository;
 
     public DashboardServiceImpl(
@@ -35,14 +35,14 @@ public class DashboardServiceImpl implements DashboardService {
             AccountServiceClient accountServiceClient,
             TransactionServiceClient transactionServiceClient,
             FraudServiceClient fraudServiceClient,
-            IvrServiceClient ivrServiceClient,
+            //IvrServiceClient ivrServiceClient,
             AdminRepository adminRepository) {
 
         this.authServiceClient = authServiceClient;
         this.accountServiceClient = accountServiceClient;
         this.transactionServiceClient = transactionServiceClient;
         this.fraudServiceClient = fraudServiceClient;
-        this.ivrServiceClient = ivrServiceClient;
+        //this.ivrServiceClient = ivrServiceClient;
         this.adminRepository = adminRepository;
     }
 
@@ -83,8 +83,8 @@ public class DashboardServiceImpl implements DashboardService {
         response.setPendingFraudCases(
                 fraudServiceClient.getPendingFraudCases());
 
-        response.setTotalIvrCalls(
-                ivrServiceClient.getTotalCalls());
+//        response.setTotalIvrCalls(
+//                ivrServiceClient.getTotalCalls());
 
         response.setTotalAdmins(
                 adminRepository.count());

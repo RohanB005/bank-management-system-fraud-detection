@@ -95,6 +95,16 @@ public class AuthController {
 	    return ResponseEntity.ok(response);
 	}
 	
+	@GetMapping("/customers")
+	public ResponseEntity<java.util.List<com.bank.auth.entity.Customer>> getAllCustomers() {
+	    return ResponseEntity.ok(authService.getAllCustomers());
+	}
+
+	@GetMapping("/customers/profile/{id}")
+	public ResponseEntity<com.bank.auth.entity.Customer> getCustomerProfile(@PathVariable Integer id) {
+	    return ResponseEntity.ok(authService.getCustomerById(id));
+	}
+
 	@GetMapping("/customers/{id}")
 	public ResponseEntity<CustomerCheckResponse> customerExists(
 	        @PathVariable Integer id) {
@@ -105,6 +115,14 @@ public class AuthController {
 	        new CustomerCheckResponse(id, exists, "SUCCESS")
 	    );
 	}
-	
 
+	@GetMapping("/internal/dashboard/total-customers")
+	public ResponseEntity<Long> getTotalCustomers() {
+	    return ResponseEntity.ok(authService.getTotalCustomers());
+	}
+
+	@GetMapping("/internal/dashboard/active-customers")
+	public ResponseEntity<Long> getActiveCustomers() {
+	    return ResponseEntity.ok(authService.getActiveCustomers());
+	}
 }

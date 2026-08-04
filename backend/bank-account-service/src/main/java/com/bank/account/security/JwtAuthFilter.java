@@ -31,10 +31,17 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
-        // Public endpoint - no JWT required
-        if (path.startsWith("/api/accounts/customer/")
-                && request.getMethod().equalsIgnoreCase("GET")) {
+        // Pass HTTP OPTIONS preflight requests directly
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
+        // Public, Internal & Inter-service account endpoints - no JWT required
+        if (path.startsWith("/api/accounts/customer/") || 
+            path.startsWith("/api/accounts/internal/") || 
+            path.equals("/api/accounts/transfer") ||
+            path.matches("^/api/accounts/\\d+$")) {
             filterChain.doFilter(request, response);
             return;
         }

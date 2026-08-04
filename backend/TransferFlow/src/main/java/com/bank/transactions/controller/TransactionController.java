@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.bank.transactions.dto.TransactionConfirmRequestDto;
 import com.bank.transactions.dto.TransactionResponseDto;
 import com.bank.transactions.dto.TransferRequestDto;
 import com.bank.transactions.enums.TransactionStatus;
@@ -14,11 +15,6 @@ import com.bank.transactions.service.TransactionService;
 
 import jakarta.validation.Valid;
 
-/**
- * REST entry point for the Transfer Flow (B2).
- * Only the transfer endpoint is exposed — deposit, withdraw, and history are
- * explicitly out of scope for this controller.
- */
 @RestController
 @RequestMapping("/api/transactions")
 public class TransactionController {
@@ -35,7 +31,18 @@ public class TransactionController {
 
         HttpStatus httpStatus = (response.getStatus() == TransactionStatus.SUCCESS)
                 ? HttpStatus.OK
-                : HttpStatus.ACCEPTED; // FLAGGED — request was understood but not executed
+                : HttpStatus.ACCEPTED;
+
+        return ResponseEntity.status(httpStatus).body(response);
+    }
+
+    @PostMapping("/transfer/confirm")
+    public ResponseEntity<TransactionResponseDto> confirmTransfer(@RequestBody TransactionConfirmRequestDto request) {
+        TransactionResponseDto response = transactionService.confirmTransfer(request);
+
+        HttpStatus httpStatus = (response.getStatus() == TransactionStatus.SUCCESS)
+                ? HttpStatus.OK
+                : HttpStatus.OK;
 
         return ResponseEntity.status(httpStatus).body(response);
     }

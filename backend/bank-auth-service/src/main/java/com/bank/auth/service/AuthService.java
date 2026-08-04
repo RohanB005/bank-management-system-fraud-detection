@@ -27,4 +27,12 @@ public interface AuthService {
 	LogoutResponse logout();
 
 	boolean customerExists(Integer id);
+
+	com.bank.auth.entity.Customer getCustomerById(Integer id);
+
+	java.util.List<com.bank.auth.entity.Customer> getAllCustomers();
+
+	Long getTotalCustomers();
+
+	Long getActiveCustomers();
 }

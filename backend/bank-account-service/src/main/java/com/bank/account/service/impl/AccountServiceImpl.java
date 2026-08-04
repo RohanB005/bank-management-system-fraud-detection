@@ -179,4 +179,20 @@ public class AccountServiceImpl implements AccountService{
 	
 	
 	
+	@Override
+	public List<AccountResponse> getAllAccounts() {
+		return accountRepository.findAll().stream()
+				.map(AccountResponse::fromEntity)
+				.collect(Collectors.toList());
+	}
+
+	@Override
+	public Long getTotalAccounts() {
+		return accountRepository.count();
+	}
+
+	@Override
+	public Long getActiveAccounts() {
+		return accountRepository.countByStatus(Account.AccountStatus.Active);
+	}
 }

@@ -7,6 +7,8 @@ public class TransactionResponse {
 
     private Integer transactionId;
 
+    private Integer accountId;
+
     private String referenceNumber;
 
     private String transactionType;
@@ -14,6 +16,8 @@ public class TransactionResponse {
     private BigDecimal amount;
 
     private BigDecimal availableBalance;
+
+    private String transactionCity;
 
     private String status;
 
@@ -26,16 +30,18 @@ public class TransactionResponse {
     }
 
     // Parameterized Constructor
-    public TransactionResponse(Integer transactionId, String referenceNumber,
+    public TransactionResponse(Integer transactionId, Integer accountId, String referenceNumber,
             String transactionType, BigDecimal amount,
-            BigDecimal availableBalance, String status,
+            BigDecimal availableBalance, String transactionCity, String status,
             LocalDateTime transactionTime, String message) {
 
         this.transactionId = transactionId;
+        this.accountId = accountId;
         this.referenceNumber = referenceNumber;
         this.transactionType = transactionType;
         this.amount = amount;
         this.availableBalance = availableBalance;
+        this.transactionCity = transactionCity;
         this.status = status;
         this.transactionTime = transactionTime;
         this.message = message;
@@ -47,6 +53,14 @@ public class TransactionResponse {
 
     public void setTransactionId(Integer transactionId) {
         this.transactionId = transactionId;
+    }
+
+    public Integer getAccountId() {
+        return accountId;
+    }
+
+    public void setAccountId(Integer accountId) {
+        this.accountId = accountId;
     }
 
     public String getReferenceNumber() {
@@ -79,6 +93,14 @@ public class TransactionResponse {
 
     public void setAvailableBalance(BigDecimal availableBalance) {
         this.availableBalance = availableBalance;
+    }
+
+    public String getTransactionCity() {
+        return transactionCity;
+    }
+
+    public void setTransactionCity(String transactionCity) {
+        this.transactionCity = transactionCity;
     }
 
     public String getStatus() {

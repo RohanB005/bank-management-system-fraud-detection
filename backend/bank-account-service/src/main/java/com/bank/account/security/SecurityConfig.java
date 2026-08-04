@@ -24,7 +24,7 @@ public class SecurityConfig {
 			.cors(Customizer.withDefaults())
 			.sessionManagement(sm->sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 			.authorizeHttpRequests(auth -> auth
-					.requestMatchers("/api/accounts/customer/**").permitAll()
+					.requestMatchers("/api/accounts/customer/**", "/api/accounts/internal/**", "/api/accounts/transfer", "/api/accounts/*").permitAll()
 					.anyRequest().authenticated()
 					)
 					.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

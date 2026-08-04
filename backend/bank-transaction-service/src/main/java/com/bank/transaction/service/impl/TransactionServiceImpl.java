@@ -109,15 +109,22 @@ public class TransactionServiceImpl implements TransactionService {
 
 	@Override
 	public List<TransactionResponse> getTransactionHistory(Integer accountId) {
-		 List<Transaction> transactions =
-		            transactionRepository.findByAccountIdOrderByTransactionTimeDesc(accountId);
+		List<Transaction> transactions =
+				transactionRepository.findByAccountIdOrderByTransactionTimeDesc(accountId);
 
-		    return transactions.stream()
-		    		.map(transaction ->
-		            buildResponse(
-		                    transaction,
-		                    "Transaction history fetched successfully"))
-		            .toList();
+		return transactions.stream()
+				.map(transaction ->
+						buildResponse(
+								transaction,
+								"Transaction history fetched successfully"))
+				.toList();
+	}
+
+	@Override
+	public List<TransactionResponse> getAllTransactions() {
+		return transactionRepository.findAll().stream()
+				.map(t -> buildResponse(t, "Transaction fetched successfully"))
+				.toList();
 	}
 	
 	
@@ -208,6 +215,9 @@ public class TransactionServiceImpl implements TransactionService {
 	    response.setTransactionId(
 	            transaction.getTransactionId());
 
+	    response.setAccountId(
+	            transaction.getAccountId());
+
 	    response.setReferenceNumber(
 	            transaction.getReferenceNumber());
 
@@ -219,6 +229,9 @@ public class TransactionServiceImpl implements TransactionService {
 
 	    response.setAvailableBalance(
 	            transaction.getAvailableBalance());
+
+	    response.setTransactionCity(
+	            transaction.getTransactionCity());
 
 	    response.setStatus(
 	            transaction.getStatus().name());
@@ -240,7 +253,27 @@ public class TransactionServiceImpl implements TransactionService {
 	                    .substring(0, 12)
 	                    .toUpperCase();
 	}
-	
+
+	@Override
+	public Long getTotalTransactions() {
+		return transactionRepository.count();
+	}
+
+	@Override
+	public Long getSuccessfulTransactions() {
+		return transactionRepository.countByStatus(TransactionStatus.Success);
+	}
+
+	@Override
+	public Long getFailedTransactions() {
+		return transactionRepository.countByStatus(TransactionStatus.Failed) + transactionRepository.countByStatus(TransactionStatus.Flagged) + transactionRepository.countByStatus(TransactionStatus.Blocked);
+	}
+
+	@Override
+	public BigDecimal getTotalTransactionAmount() {
+		BigDecimal total = transactionRepository.sumTotalAmount();
+		return total != null ? total : BigDecimal.ZERO;
+	}
 }
     
     

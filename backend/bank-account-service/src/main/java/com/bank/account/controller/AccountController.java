@@ -31,6 +31,11 @@ public class AccountController {
 	@Autowired
 	private AccountService accountService;
 	
+	@GetMapping
+	public ResponseEntity<ApiResponse<List<AccountResponse>>> getAllAccounts() {
+		return ResponseEntity.ok(ApiResponse.success(accountService.getAllAccounts(), "All accounts fetched successfully"));
+	}
+
 	@PostMapping
 	public ResponseEntity<ApiResponse<AccountResponse>> createAccount(
 			@Valid @RequestBody CreateAccountRequest request){
@@ -86,7 +91,14 @@ public class AccountController {
 	                    accountService.transfer(request),
 	                    "Balance updated successfully"));
 	}
-	
-	
-	
+
+	@GetMapping("/internal/dashboard/total-accounts")
+	public ResponseEntity<Long> getTotalAccounts() {
+	    return ResponseEntity.ok(accountService.getTotalAccounts());
+	}
+
+	@GetMapping("/internal/dashboard/active-accounts")
+	public ResponseEntity<Long> getActiveAccounts() {
+	    return ResponseEntity.ok(accountService.getActiveAccounts());
+	}
 }

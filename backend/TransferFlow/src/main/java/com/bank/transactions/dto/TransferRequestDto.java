@@ -23,18 +23,25 @@ public class TransferRequestDto {
     private BigDecimal amount;
     
     private String transactionCity;
+    private String clientIpAddress;
 
     public TransferRequestDto() {
     }
 
-    public TransferRequestDto(Integer fromAccountId, Integer toAccountId, BigDecimal amount,String transactionCity) {
+    public TransferRequestDto(Integer fromAccountId, Integer toAccountId, BigDecimal amount, String transactionCity) {
         this.fromAccountId = fromAccountId;
         this.toAccountId = toAccountId;
         this.amount = amount;
-        this.transactionCity=transactionCity;
+        this.transactionCity = transactionCity;
     }
-    
-    
+
+    public String getClientIpAddress() {
+        return clientIpAddress;
+    }
+
+    public void setClientIpAddress(String clientIpAddress) {
+        this.clientIpAddress = clientIpAddress;
+    }
 
     public String getTransactionCity() {
 		return transactionCity;
